@@ -1,9 +1,5 @@
-import sqlite3
-
-from pypika import Query, Table
-
 from pypm.console import console
-from pypm.db import get_connection
+from pypm.db import Project, Session, Task
 
 
 class TaskController:
@@ -11,11 +7,6 @@ class TaskController:
         """
         Create a new task.
         """
-        connection = get_connection()
-        cursor = connection.cursor()
-
-        tasks_table = Table("tasks")
-
         project_slug = args.project_slug
         title = args.title
         body = args.body
@@ -24,87 +15,85 @@ class TaskController:
         due_date = args.due_date
 
         # Check if the project exists
-        project_query = (
-            Query.from_(Table("projects"))
-            .select("id")
-            .where(Table("projects").slug == project_slug)
-        )
-        cursor.execute(str(project_query))
-        project_id = cursor.fetchone()
-        if not project_id:
-            console.print(
-                f"[red]Error: Project with slug '{project_slug}' not found.[/red]"
-            )
-            return
-        project_id = project_id[0]
-
-        q = (
-            Query.into(tasks_table)
-            .columns("project_id", "title", "body", "status", "priority", "due_date")
-            .insert(project_id, title, body, status, priority, due_date)
-        )
-
         try:
-            cursor.execute(str(q))
-            connection.commit()
+            session = Session()
+            project = session.query(Project).filter_by(slug=project_slug).first()
+            if not project:
+                console.print(
+                    f"[red]Error: Project with slug '{project_slug}' not found.[/red]"
+                )
+                return
+
+            project_id = project.id
+        except Exception as e:
+            console.print(f"[red]Error: {e}[/red]")
+            return
+        finally:
+            session.close()
+
+        # Create the task
+        try:
+            new_task = Task(
+                project_id=project_id,
+                title=title,
+                body=body,
+                status=status,
+                priority=priority,
+                due_date=due_date,
+            )
+
+            session.add(new_task)
+            session.commit()
             console.print(f"[green]Task '{title}' created successfully![/green]")
-        except sqlite3.IntegrityError as e:
+        except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
         finally:
-            connection.close()
+            session.close()
 
     def list(self, args):
         """
         List all tasks for a given project.
         """
-        connection = get_connection()
-        cursor = connection.cursor()
-
-        tasks_table = Table("tasks")
-        projects_table = Table("projects")
-
         project_slug = args.project_slug
 
         # Check if the project exists
-        project_query = (
-            Query.from_(projects_table)
-            .select("id")
-            .where(projects_table.slug == project_slug)
-        )
-        cursor.execute(str(project_query))
-        project_id = cursor.fetchone()
-        if not project_id:
-            console.print(
-                f"[red]Error: Project with slug '{project_slug}' not found.[/red]"
-            )
-            return
-        project_id = project_id[0]
-
-        q = (
-            Query.from_(tasks_table)
-            .join(projects_table)
-            .on(tasks_table.project_id == projects_table.id)
-            .select(
-                tasks_table.id,
-                tasks_table.title,
-                tasks_table.status,
-                tasks_table.priority,
-            )
-            .where(projects_table.slug == project_slug)
-        )
-
-        cursor.execute(str(q))
-        rows = cursor.fetchall()
-
-        if rows:
-            console.print(f"[bold]Tasks for Project '{project_slug}':[/bold]")
-            for row in rows:
+        try:
+            session = Session()
+            project = session.query(Project).filter_by(slug=project_slug).first()
+            if not project:
                 console.print(
-                    f"- [cyan]{row[1]}[/cyan] (Status: {row[2]}, Priority: {row[3]})"
+                    f"[red]Error: Project with slug '{project_slug}' not found.[/red]"
                 )
-        else:
-            console.print(
-                f"[yellow]No tasks found for project '{project_slug}'.[/yellow]"
+                return
+
+            project_id = project.id
+        except Exception as e:
+            console.print(f"[red]Error: {e}[/red]")
+            return
+        finally:
+            session.close()
+
+        # List tasks for the project
+        try:
+            session = Session()
+            tasks = (
+                session.query(Task)
+                .filter_by(project_id=project_id)
+                .order_by(Task.created_at.desc())
+                .all()
             )
 
-        connection.close()
+            if tasks:
+                console.print(f"[bold]Tasks for Project '{project_slug}':[/bold]")
+                for task in tasks:
+                    console.print(
+                        f"- [cyan]{task.title}[/cyan] (Status: {task.status}, Priority: {task.priority})"
+                    )
+            else:
+                console.print(
+                    f"[yellow]No tasks found for project '{project_slug}'.[/yellow]"
+                )
+        except Exception as e:
+            console.print(f"[red]Error: {e}[/red]")
+        finally:
+            session.close()
