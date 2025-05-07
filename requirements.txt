@@ -1,0 +1,3 @@
+pypika
+rich
+python-slugify
