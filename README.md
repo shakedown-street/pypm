@@ -1,6 +1,6 @@
 # pypm
 
-CLI project management tool built with Python. Building as a learning exercise.
+CLI/TUI project management tool built with Python. Building as a learning exercise.
 
 ## Features
 
