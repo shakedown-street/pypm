@@ -8,6 +8,7 @@ from pypm.services.task import TaskService
 
 
 def main():
+    # Initialize database
     db = Database()
     db.create_tables()
 
@@ -19,6 +20,7 @@ def main():
     projects = ProjectController(project_service)
     tasks = TaskController(task_service)
 
+    # Initialize CLI parser
     parser = argparse.ArgumentParser(description="Project Management CLI Tool")
     subparsers = parser.add_subparsers(title="Resources", dest="resource")
 
