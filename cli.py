@@ -2,11 +2,22 @@ import argparse
 
 from pypm.controllers.project import ProjectController
 from pypm.controllers.task import TaskController
+from pypm.db import Database
+from pypm.services.project import ProjectService
+from pypm.services.task import TaskService
 
 
 def main():
-    projects = ProjectController()
-    tasks = TaskController()
+    db = Database()
+    db.create_tables()
+
+    # Initialize services
+    project_service = ProjectService(db)
+    task_service = TaskService(db, project_service)
+
+    # Initialize controllers
+    projects = ProjectController(project_service)
+    tasks = TaskController(task_service)
 
     parser = argparse.ArgumentParser(description="Project Management CLI Tool")
     subparsers = parser.add_subparsers(title="Resources", dest="resource")
@@ -70,3 +81,7 @@ def main():
         args.func(args)
     else:
         parser.print_help()
+
+
+if __name__ == "__main__":
+    main()

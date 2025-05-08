@@ -1,12 +1,12 @@
 from pypm.console import console
-from pypm.db import Project, Session, Task
+from pypm.services.task import TaskService
 
 
 class TaskController:
+    def __init__(self, task_service: TaskService):
+        self.task_service = task_service
+
     def create(self, args):
-        """
-        Create a new task.
-        """
         project_slug = args.project_slug
         title = args.title
         body = args.body
@@ -14,41 +14,18 @@ class TaskController:
         priority = args.priority
         due_date = args.due_date
 
-        # Check if the project exists
         try:
-            session = Session()
-            project = session.query(Project).filter_by(slug=project_slug).first()
-            if not project:
-                console.print(
-                    f"[red]Error: Project with slug '{project_slug}' not found.[/red]"
-                )
-                return
-
-            project_id = project.id
-        except Exception as e:
-            console.print(f"[red]Error: {e}[/red]")
-            return
-        finally:
-            session.close()
-
-        # Create the task
-        try:
-            new_task = Task(
-                project_id=project_id,
-                title=title,
+            self.task = self.task_service.create(
+                project_slug,
+                title,
                 body=body,
                 status=status,
                 priority=priority,
                 due_date=due_date,
             )
-
-            session.add(new_task)
-            session.commit()
             console.print(f"[green]Task '{title}' created successfully![/green]")
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
-        finally:
-            session.close()
 
     def list(self, args):
         """
@@ -56,32 +33,8 @@ class TaskController:
         """
         project_slug = args.project_slug
 
-        # Check if the project exists
         try:
-            session = Session()
-            project = session.query(Project).filter_by(slug=project_slug).first()
-            if not project:
-                console.print(
-                    f"[red]Error: Project with slug '{project_slug}' not found.[/red]"
-                )
-                return
-
-            project_id = project.id
-        except Exception as e:
-            console.print(f"[red]Error: {e}[/red]")
-            return
-        finally:
-            session.close()
-
-        # List tasks for the project
-        try:
-            session = Session()
-            tasks = (
-                session.query(Task)
-                .filter_by(project_id=project_id)
-                .order_by(Task.created_at.desc())
-                .all()
-            )
+            tasks = self.task_service.list(project_slug)
 
             if tasks:
                 console.print(f"[bold]Tasks for Project '{project_slug}':[/bold]")
@@ -95,5 +48,3 @@ class TaskController:
                 )
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
-        finally:
-            session.close()
