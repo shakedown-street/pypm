@@ -1,5 +1,6 @@
 import argparse
 
+from pypm.console import console
 from pypm.controllers.project import ProjectController
 from pypm.controllers.task import TaskController
 from pypm.db import init_db
@@ -14,7 +15,6 @@ def main():
     init_db()
 
     # Initialize controllers
-    projects = ProjectController()
     tasks = TaskController()
 
     # Initialize CLI parser
@@ -28,16 +28,16 @@ def main():
     # Create project command
     create_parser = project_subparsers.add_parser("create", help="Create a new project")
     create_parser.add_argument("name", type=str, help="Name of the project")
-    create_parser.set_defaults(func=projects.create)
+    create_parser.set_defaults(func=ProjectController.create)
 
     # List projects command
     list_parser = project_subparsers.add_parser("list", help="List all projects")
-    list_parser.set_defaults(func=projects.list)
+    list_parser.set_defaults(func=ProjectController.list)
 
     # Get project command
     get_parser = project_subparsers.add_parser("get", help="Get a project by slug")
     get_parser.add_argument("slug", type=str, help="Slug of the project")
-    get_parser.set_defaults(func=projects.get)
+    get_parser.set_defaults(func=ProjectController.get)
 
     # Update project command
     update_parser = project_subparsers.add_parser(
@@ -54,14 +54,14 @@ def main():
         choices=["active", "inactive", "completed"],
         default=None,
     )
-    update_parser.set_defaults(func=projects.update)
+    update_parser.set_defaults(func=ProjectController.update)
 
     # Delete project command
     delete_parser = project_subparsers.add_parser(
         "delete", help="Delete a project by slug"
     )
     delete_parser.add_argument("slug", type=str, help="Slug of the project")
-    delete_parser.set_defaults(func=projects.delete)
+    delete_parser.set_defaults(func=ProjectController.delete)
 
     # Task resource
     task_parser = subparsers.add_parser("task", help="Manage tasks")
@@ -154,11 +154,16 @@ def main():
     delete_task_parser.set_defaults(func=tasks.delete)
 
     # Parse arguments and route to the appropriate function
-    args = parser.parse_args()
-    if args.resource and args.action:
-        args.func(args)
-    else:
-        parser.print_help()
+    try:
+        args = parser.parse_args()
+        if args.resource and args.action:
+            args.func(args)
+        else:
+            parser.print_help()
+    except ValueError as e:
+        console.print(f"[red]Error: {e}[/red]")
+    except Exception as e:
+        console.print(f"[red]Unexpected error: {e}[/red]")
 
 
 if __name__ == "__main__":
