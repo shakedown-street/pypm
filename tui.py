@@ -3,6 +3,7 @@ from textual.widgets import Footer, Header, Static
 
 from pypm.db import Database
 from pypm.screens.home import HomeScreen
+from pypm.screens.modals.delete import DeleteModalScreen
 from pypm.screens.project_create import ProjectCreateScreen
 from pypm.screens.project_detail import ProjectDetailScreen
 from pypm.services.project import ProjectService
@@ -29,10 +30,18 @@ class PyPMApp(App):
         # Fetch projects
         self.projects = self.project_service.list()
 
+        self.SCREENS["home"] = HomeScreen(self.project_service)
+        self.SCREENS["project_create"] = ProjectCreateScreen()
+        self.SCREENS["project_detail"] = ProjectDetailScreen(self.project_service)
+        self.SCREENS["delete_modal_screen"] = DeleteModalScreen()
+
     def on_mount(self) -> None:
-        self.install_screen(HomeScreen(), name="home")
-        self.install_screen(ProjectCreateScreen(), name="project_create")
-        self.install_screen(ProjectDetailScreen(), name="project_detail")
+        self.install_screen(self.SCREENS["home"], name="home")
+        self.install_screen(self.SCREENS["project_create"], name="project_create")
+        self.install_screen(self.SCREENS["project_detail"], name="project_detail")
+        self.install_screen(
+            self.SCREENS["delete_modal_screen"], name="delete_modal_screen"
+        )
         self.push_screen("home")
         self.refresh_bindings()
 

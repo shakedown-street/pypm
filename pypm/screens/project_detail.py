@@ -8,18 +8,30 @@ from textual.widgets import (
     ListItem,
 )
 
+from pypm.services.project import ProjectService
+
 
 class ProjectDetailScreen(Screen):
     BINDINGS = [
         ("e", "edit_project", "Edit project"),
         ("d", "delete_project", "Delete project"),
+        ("n", "new_task", "New task"),
         ("escape", "app.pop_screen", "Back to previous screen"),
     ]
 
+    def __init__(self, project_service: ProjectService):
+        super().__init__()
+        self.project_service = project_service
+        self.project = None
+
+    def set_project(self, slug: str) -> None:
+        self.project = self.project_service.get_by_slug(slug)
+        self.refresh(recompose=True)
+
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Static("[bold]Project Name[/bold]")
-        yield Static("[bold]ID:[/bold] 1")
+        yield Static(f"[bold]{self.project.name}[/bold]")
+        yield Static(f"[bold]ID:[/bold] {self.project.id}")
         yield Static("[bold]Tasks:[/bold]")
         with ListView(id="task_list"):
             yield ListItem(Static("Task 1"), id="task_1")
@@ -30,4 +42,11 @@ class ProjectDetailScreen(Screen):
         self.app.log("Edit project action triggered")
 
     def action_delete_project(self) -> None:
-        self.app.log("Delete project action triggered")
+        def confirm_delete(confirm: bool | None) -> None:
+            if confirm:
+                self.project_service.delete(self.project.id)
+
+        self.app.SCREENS["delete_modal_screen"].set_message(
+            f"Are you sure you want to delete {self.project.name}?"
+        )
+        self.app.push_screen(self.app.SCREENS["delete_modal_screen"], confirm_delete)
