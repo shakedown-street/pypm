@@ -8,6 +8,10 @@ from pypm.services.task import TaskService
 
 
 def main():
+    """
+    Main entry point for the CLI program.
+    """
+
     # Initialize database
     db = Database()
     db.create_tables()

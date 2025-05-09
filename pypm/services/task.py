@@ -8,6 +8,10 @@ class TaskService:
         self.project_service = project_service
 
     def create(self, project_slug, title, *args, **kwargs):
+        """
+        Create a new task for the specified project in the database
+        and return it.
+        """
         project = self.project_service.get_by_slug(project_slug)
         if not project:
             raise ValueError(f"Project with slug '{project_slug}' not found.")
@@ -25,6 +29,9 @@ class TaskService:
             return task
 
     def list(self, project_slug=None):
+        """
+        List all tasks in the database, optionally filtered by project slug.
+        """
         with self.db.Session() as session:
             if project_slug:
                 project = self.project_service.get_by_slug(project_slug)
@@ -41,11 +48,18 @@ class TaskService:
             return tasks
 
     def get(self, id):
+        """
+        Get a task from the database by `id`.
+        """
         with self.db.Session() as session:
             task = session.query(Task).filter_by(id=id).first()
             return task
 
     def update(self, id, **kwargs):
+        """
+        Update fields of a task in the database by `id`
+        and return the updated task.
+        """
         with self.db.Session() as session:
             task = session.query(Task).filter_by(id=id).first()
             if not task:
@@ -59,6 +73,10 @@ class TaskService:
             return task
 
     def delete(self, id):
+        """
+        Delete a task from the database by `id`
+        and return the deleted task.
+        """
         with self.db.Session() as session:
             task = session.query(Task).filter_by(id=id).first()
             if not task:

@@ -11,6 +11,10 @@ from pypm.services.task import TaskService
 
 
 class PyPMApp(App):
+    """
+    Main entry point for the Textual/TUI application.
+    """
+
     CSS_PATH = "tui.tcss"
     BINDINGS = [
         ("d", "toggle_dark", "Toggle dark mode"),
@@ -27,25 +31,29 @@ class PyPMApp(App):
         self.project_service = ProjectService(self.db)
         self.task_service = TaskService(self.db, self.project_service)
 
-        # Fetch projects
-        self.projects = self.project_service.list()
-
+        # Initialize screens
         self.SCREENS["home"] = HomeScreen(self.project_service)
         self.SCREENS["project_create"] = ProjectCreateScreen()
         self.SCREENS["project_detail"] = ProjectDetailScreen(self.project_service)
         self.SCREENS["delete_modal_screen"] = DeleteModalScreen()
 
     def on_mount(self) -> None:
+        # Install screens
         self.install_screen(self.SCREENS["home"], name="home")
         self.install_screen(self.SCREENS["project_create"], name="project_create")
         self.install_screen(self.SCREENS["project_detail"], name="project_detail")
         self.install_screen(
             self.SCREENS["delete_modal_screen"], name="delete_modal_screen"
         )
+
+        # Push the home screen
         self.push_screen("home")
         self.refresh_bindings()
 
     def action_toggle_dark(self) -> None:
+        """
+        Toggle between light and dark themes.
+        """
         self.theme = (
             "textual-dark" if self.theme == "textual-light" else "textual-light"
         )
