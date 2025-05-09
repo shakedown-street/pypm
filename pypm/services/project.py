@@ -29,21 +29,29 @@ class ProjectService:
             return projects
 
     @staticmethod
-    def get(id: int) -> Project | None:
+    def get(id: int) -> Project:
         """
         Get a project from the database by `id`.
         """
         with Session() as session:
             project = session.query(Project).filter_by(id=id).first()
+
+            if not project:
+                raise ValueError(f"Project with id '{id}' not found.")
+
             return project
 
     @staticmethod
-    def get_by_slug(slug: str) -> Project | None:
+    def get_by_slug(slug: str) -> Project:
         """
         Get a project from the database by `slug`.
         """
         with Session() as session:
             project = session.query(Project).filter_by(slug=slug).first()
+
+            if not project:
+                raise ValueError(f"Project with slug '{slug}' not found.")
+
             return project
 
     @staticmethod
@@ -53,13 +61,13 @@ class ProjectService:
         and return the updated project.
         """
         with Session() as session:
-            project = session.query(Project).filter_by(id=id).first()
-            if not project:
-                raise ValueError(f"Project not found.")
+            project = ProjectService.get(id)
 
-            project.name = kwargs.get("name", project.name)
-            project.slug = slugify(kwargs.get("name", project.name))
-            project.status = kwargs.get("status", project.status)
+            for key, value in kwargs.items():
+                if hasattr(project, key):
+                    setattr(project, key, value)
+                else:
+                    raise ValueError(f"Invalid field '{key}' for Project.")
 
             session.commit()
             session.refresh(project)
@@ -72,9 +80,7 @@ class ProjectService:
         Delete a project from the database by `id` and return the deleted project.
         """
         with Session() as session:
-            project = session.query(Project).filter_by(id=id).first()
-            if not project:
-                raise ValueError(f"Project not found.")
+            project = ProjectService.get(id)
 
             session.delete(project)
             session.commit()
