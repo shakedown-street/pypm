@@ -1,5 +1,6 @@
 from slugify import slugify
 
+from sqlalchemy.sql import func
 from pypm.db import Project, Session
 
 
@@ -25,7 +26,9 @@ class ProjectService:
         List all projects in the database.
         """
         with Session() as session:
-            projects = session.query(Project).order_by(Project.name.asc()).all()
+            projects = (
+                session.query(Project).order_by(func.lower(Project.name).asc()).all()
+            )
             return projects
 
     @staticmethod
