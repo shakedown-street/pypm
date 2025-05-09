@@ -1,17 +1,14 @@
 from slugify import slugify
 
-from pypm.db import Database, Project
+from pypm.db import Project, Session
 
 
 class ProjectService:
-    def __init__(self, db: Database):
-        self.db = db
-
     def create(self, name: str) -> Project:
         """
         Create a new project in the database and return it.
         """
-        with self.db.Session() as session:
+        with Session() as session:
             slug = slugify(name)
             project = Project(name=name, slug=slug)
 
@@ -25,7 +22,7 @@ class ProjectService:
         """
         List all projects in the database.
         """
-        with self.db.Session() as session:
+        with Session() as session:
             projects = session.query(Project).order_by(Project.name.asc()).all()
             return projects
 
@@ -33,7 +30,7 @@ class ProjectService:
         """
         Get a project from the database by `id`.
         """
-        with self.db.Session() as session:
+        with Session() as session:
             project = session.query(Project).filter_by(id=id).first()
             return project
 
@@ -41,7 +38,7 @@ class ProjectService:
         """
         Get a project from the database by `slug`.
         """
-        with self.db.Session() as session:
+        with Session() as session:
             project = session.query(Project).filter_by(slug=slug).first()
             return project
 
@@ -50,7 +47,7 @@ class ProjectService:
         Update fields of a project in the database by `id`
         and return the updated project.
         """
-        with self.db.Session() as session:
+        with Session() as session:
             project = session.query(Project).filter_by(id=id).first()
             if not project:
                 raise ValueError(f"Project not found.")
@@ -68,7 +65,7 @@ class ProjectService:
         """
         Delete a project from the database by `id` and return the deleted project.
         """
-        with self.db.Session() as session:
+        with Session() as session:
             project = session.query(Project).filter_by(id=id).first()
             if not project:
                 raise ValueError(f"Project not found.")

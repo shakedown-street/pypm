@@ -2,7 +2,7 @@ import argparse
 
 from pypm.controllers.project import ProjectController
 from pypm.controllers.task import TaskController
-from pypm.db import Database
+from pypm.db import init_db
 from pypm.services.project import ProjectService
 from pypm.services.task import TaskService
 
@@ -13,12 +13,11 @@ def main():
     """
 
     # Initialize database
-    db = Database()
-    db.create_tables()
+    init_db()
 
     # Initialize services
-    project_service = ProjectService(db)
-    task_service = TaskService(db, project_service)
+    project_service = ProjectService()
+    task_service = TaskService(project_service)
 
     # Initialize controllers
     projects = ProjectController(project_service)

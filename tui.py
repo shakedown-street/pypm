@@ -1,7 +1,6 @@
-from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header, Static
+from textual.app import App
 
-from pypm.db import Database
+from pypm.db import init_db
 from pypm.screens.home import HomeScreen
 from pypm.screens.modals.delete import DeleteModalScreen
 from pypm.screens.project_create import ProjectCreateScreen
@@ -24,12 +23,11 @@ class PyPMApp(App):
         super().__init__()
 
         # Initialize database
-        self.db = Database()
-        self.db.create_tables()
+        init_db()
 
         # Initialize services
-        self.project_service = ProjectService(self.db)
-        self.task_service = TaskService(self.db, self.project_service)
+        self.project_service = ProjectService()
+        self.task_service = TaskService(self.project_service)
 
         # Initialize screens
         self.SCREENS["home"] = HomeScreen(self.project_service)

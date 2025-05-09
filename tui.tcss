@@ -23,3 +23,15 @@ DeleteModalScreen {
 #dialog Button {
     width: 100%;
 }
+
+#input_name {
+  margin-bottom: 2;
+}
+
+#radioset_status {
+  margin-bottom: 2;
+}
+
+#project_create_container {
+  padding: 1;
+}

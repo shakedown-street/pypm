@@ -54,10 +54,10 @@ class Task(Base):
     project: Mapped[Project] = relationship(back_populates="tasks")
 
 
-class Database:
-    def __init__(self):
-        self.engine = create_engine(f"sqlite:///pypm.db")
-        self.Session = sessionmaker(bind=self.engine)
+engine = create_engine(f"sqlite:///pypm.db")
+Session = sessionmaker(bind=engine)
 
-    def create_tables(self):
-        Base.metadata.create_all(self.engine)
+
+def init_db():
+    """Initialize the database and create tables."""
+    Base.metadata.create_all(engine)

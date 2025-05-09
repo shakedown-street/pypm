@@ -13,8 +13,8 @@ from pypm.services.project import ProjectService
 
 class ProjectDetailScreen(Screen):
     BINDINGS = [
-        ("e", "edit_project", "Edit project"),
-        ("d", "delete_project", "Delete project"),
+        ("e", "edit_project", "Edit"),
+        ("d", "delete_project", "Delete"),
         ("n", "new_task", "New task"),
         ("escape", "app.pop_screen", "Back to previous screen"),
     ]

@@ -1,10 +1,9 @@
-from pypm.db import Database, Task
+from pypm.db import Session, Task
 from pypm.services.project import ProjectService
 
 
 class TaskService:
-    def __init__(self, db: Database, project_service: ProjectService):
-        self.db = db
+    def __init__(self, project_service: ProjectService):
         self.project_service = project_service
 
     def create(self, project_slug, title, *args, **kwargs):
@@ -16,7 +15,7 @@ class TaskService:
         if not project:
             raise ValueError(f"Project with slug '{project_slug}' not found.")
 
-        with self.db.Session() as session:
+        with Session() as session:
             task = Task(
                 project_id=project.id,
                 title=title,
@@ -32,7 +31,7 @@ class TaskService:
         """
         List all tasks in the database, optionally filtered by project slug.
         """
-        with self.db.Session() as session:
+        with Session() as session:
             if project_slug:
                 project = self.project_service.get_by_slug(project_slug)
                 if not project:
@@ -51,7 +50,7 @@ class TaskService:
         """
         Get a task from the database by `id`.
         """
-        with self.db.Session() as session:
+        with Session() as session:
             task = session.query(Task).filter_by(id=id).first()
             return task
 
@@ -60,7 +59,7 @@ class TaskService:
         Update fields of a task in the database by `id`
         and return the updated task.
         """
-        with self.db.Session() as session:
+        with Session() as session:
             task = session.query(Task).filter_by(id=id).first()
             if not task:
                 return None
@@ -77,7 +76,7 @@ class TaskService:
         Delete a task from the database by `id`
         and return the deleted task.
         """
-        with self.db.Session() as session:
+        with Session() as session:
             task = session.query(Task).filter_by(id=id).first()
             if not task:
                 return None
