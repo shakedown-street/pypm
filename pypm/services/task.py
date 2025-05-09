@@ -64,7 +64,10 @@ class TaskService:
         and return the updated task.
         """
         with Session() as session:
-            task = TaskService.get(id)
+            task = session.query(Task).filter_by(id=id).first()
+
+            if not task:
+                raise ValueError(f"Task with id '{id}' not found.")
 
             for key, value in kwargs.items():
                 if hasattr(task, key):
