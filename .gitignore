@@ -1,5 +1,8 @@
 __pycache__
 venv
 pypm.db
-schema.txt
 .github/copilot-instructions.md
+
+# other
+screens.txt
+schema.txt
