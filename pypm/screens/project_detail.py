@@ -19,13 +19,12 @@ class ProjectDetailScreen(Screen):
         ("escape", "app.pop_screen", "Back to previous screen"),
     ]
 
-    def __init__(self, project_service: ProjectService):
+    def __init__(self):
         super().__init__()
-        self.project_service = project_service
         self.project = None
 
     def set_project(self, slug: str) -> None:
-        self.project = self.project_service.get_by_slug(slug)
+        self.project = ProjectService.get_by_slug(slug)
         self.refresh(recompose=True)
 
     def compose(self) -> ComposeResult:
@@ -44,7 +43,7 @@ class ProjectDetailScreen(Screen):
     def action_delete_project(self) -> None:
         def confirm_delete(confirm: bool | None) -> None:
             if confirm:
-                self.project_service.delete(self.project.id)
+                ProjectService.delete(self.project.id)
 
         self.app.SCREENS["delete_modal_screen"].set_message(
             f"Are you sure you want to delete {self.project.name}?"

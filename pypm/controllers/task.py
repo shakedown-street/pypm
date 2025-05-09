@@ -3,9 +3,6 @@ from pypm.services.task import TaskService
 
 
 class TaskController:
-    def __init__(self, task_service: TaskService):
-        self.task_service = task_service
-
     def create(self, args):
         project_slug = args.project_slug
         title = args.title
@@ -15,7 +12,7 @@ class TaskController:
         due_date = args.due_date
 
         try:
-            self.task = self.task_service.create(
+            self.task = TaskService.create(
                 project_slug,
                 title,
                 body=body,
@@ -30,7 +27,7 @@ class TaskController:
     def list(self, args):
         try:
             project_slug = args.project
-            tasks = self.task_service.list(project_slug)
+            tasks = TaskService.list(project_slug)
 
             if project_slug:
                 console.print(f"[bold]Tasks for Project '{project_slug}':[/bold]")
@@ -53,7 +50,7 @@ class TaskController:
     def get(self, args):
         try:
             id = args.id
-            task = self.task_service.get(id)
+            task = TaskService.get(id)
 
             if task:
                 console.print(
@@ -74,7 +71,7 @@ class TaskController:
 
     def update(self, args):
         try:
-            task = self.task_service.get(args.id)
+            task = TaskService.get(args.id)
             if not task:
                 console.print(f"[red]Task with ID '{args.id}' not found.[/red]")
                 return
@@ -89,7 +86,7 @@ class TaskController:
                 kwargs["priority"] = args.priority
             if args.due_date:
                 kwargs["due_date"] = args.due_date
-            updated = self.task_service.update(task.id, **kwargs)
+            updated = TaskService.update(task.id, **kwargs)
             if updated:
                 console.print(
                     f"[green]Task '{task.title}' updated successfully![/green]"
@@ -101,7 +98,7 @@ class TaskController:
 
     def delete(self, args):
         try:
-            deleted = self.task_service.delete(args.id)
+            deleted = TaskService.delete(args.id)
             if deleted:
                 console.print(
                     f"[green]Task '{deleted.title}' deleted successfully![/green]"

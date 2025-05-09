@@ -4,7 +4,8 @@ from pypm.db import Project, Session
 
 
 class ProjectService:
-    def create(self, name: str) -> Project:
+    @staticmethod
+    def create(name: str) -> Project:
         """
         Create a new project in the database and return it.
         """
@@ -18,7 +19,8 @@ class ProjectService:
 
             return project
 
-    def list(self) -> list[Project]:
+    @staticmethod
+    def list() -> list[Project]:
         """
         List all projects in the database.
         """
@@ -26,7 +28,8 @@ class ProjectService:
             projects = session.query(Project).order_by(Project.name.asc()).all()
             return projects
 
-    def get(self, id: int) -> Project | None:
+    @staticmethod
+    def get(id: int) -> Project | None:
         """
         Get a project from the database by `id`.
         """
@@ -34,7 +37,8 @@ class ProjectService:
             project = session.query(Project).filter_by(id=id).first()
             return project
 
-    def get_by_slug(self, slug: str) -> Project | None:
+    @staticmethod
+    def get_by_slug(slug: str) -> Project | None:
         """
         Get a project from the database by `slug`.
         """
@@ -42,7 +46,8 @@ class ProjectService:
             project = session.query(Project).filter_by(slug=slug).first()
             return project
 
-    def update(self, id: int, **kwargs) -> Project:
+    @staticmethod
+    def update(id: int, **kwargs) -> Project:
         """
         Update fields of a project in the database by `id`
         and return the updated project.
@@ -61,7 +66,8 @@ class ProjectService:
 
             return project
 
-    def delete(self, id: int) -> Project:
+    @staticmethod
+    def delete(id: int) -> Project:
         """
         Delete a project from the database by `id` and return the deleted project.
         """

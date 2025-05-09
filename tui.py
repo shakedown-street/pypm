@@ -25,14 +25,10 @@ class PyPMApp(App):
         # Initialize database
         init_db()
 
-        # Initialize services
-        self.project_service = ProjectService()
-        self.task_service = TaskService(self.project_service)
-
         # Initialize screens
-        self.SCREENS["home"] = HomeScreen(self.project_service)
+        self.SCREENS["home"] = HomeScreen()
         self.SCREENS["project_create"] = ProjectCreateScreen()
-        self.SCREENS["project_detail"] = ProjectDetailScreen(self.project_service)
+        self.SCREENS["project_detail"] = ProjectDetailScreen()
         self.SCREENS["delete_modal_screen"] = DeleteModalScreen()
 
     def on_mount(self) -> None:

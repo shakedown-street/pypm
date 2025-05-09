@@ -3,12 +3,9 @@ from pypm.services.project import ProjectService
 
 
 class ProjectController:
-    def __init__(self, project_service: ProjectService):
-        self.project_service = project_service
-
     def create(self, args):
         try:
-            project = self.project_service.create(args.name)
+            project = ProjectService.create(args.name)
             if project:
                 console.print(
                     f"[green]Project '{project.name}' created successfully with slug '{project.slug}'![/green]"
@@ -20,7 +17,7 @@ class ProjectController:
 
     def list(self, args):
         try:
-            projects = self.project_service.list()
+            projects = ProjectService.list()
 
             if projects:
                 console.print("[bold]Projects:[/bold]")
@@ -35,7 +32,7 @@ class ProjectController:
 
     def get(self, args):
         try:
-            project = self.project_service.get_by_slug(args.slug)
+            project = ProjectService.get_by_slug(args.slug)
             if project:
                 console.print(f"[bold]Project:[/bold] {project.name}")
                 console.print(f"[bold]ID:[/bold] {project.id}")
@@ -50,7 +47,7 @@ class ProjectController:
 
     def update(self, args):
         try:
-            project = self.project_service.get_by_slug(args.slug)
+            project = ProjectService.get_by_slug(args.slug)
             if not project:
                 console.print("[red]Project not found.[/red]")
                 return
@@ -62,7 +59,7 @@ class ProjectController:
             if args.status:
                 kwargs["status"] = args.status
 
-            updated = self.project_service.update(project.id, **kwargs)
+            updated = ProjectService.update(project.id, **kwargs)
             if updated:
                 console.print(
                     f"[green]Project '{updated.name}' updated successfully![/green]"
@@ -74,11 +71,11 @@ class ProjectController:
 
     def delete(self, args):
         try:
-            project = self.project_service.get_by_slug(args.slug)
+            project = ProjectService.get_by_slug(args.slug)
             if not project:
                 console.print("[red]Project not found.[/red]")
                 return
-            deleted = self.project_service.delete(project.id)
+            deleted = ProjectService.delete(project.id)
             if deleted:
                 console.print(
                     f"[green]Project '{deleted.name}' deleted successfully![/green]"

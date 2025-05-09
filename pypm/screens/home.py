@@ -10,10 +10,9 @@ class HomeScreen(Screen):
         ("n", "new_project", "New project"),
     ]
 
-    def __init__(self, project_service: ProjectService):
+    def __init__(self):
         super().__init__()
-        self.project_service = project_service
-        self.projects = self.project_service.list()
+        self.projects = ProjectService.list()
 
     def compose(self) -> ComposeResult:
         yield Header()
