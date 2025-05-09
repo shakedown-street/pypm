@@ -58,13 +58,16 @@ class ProjectService:
             return project
 
     @staticmethod
-    def update(id: int, **kwargs) -> Project:
+    def update(slug: str, **kwargs) -> Project:
         """
-        Update fields of a project in the database by `id`
+        Update fields of a project in the database by `slug`
         and return the updated project.
         """
         with Session() as session:
-            project = ProjectService.get(id)
+            project = session.query(Project).filter_by(slug=slug).first()
+
+            if not project:
+                raise ValueError(f"Project with slug '{slug}' not found.")
 
             for key, value in kwargs.items():
                 if hasattr(project, key):
@@ -78,12 +81,15 @@ class ProjectService:
             return project
 
     @staticmethod
-    def delete(id: int) -> Project:
+    def delete(slug: str) -> Project:
         """
-        Delete a project from the database by `id` and return the deleted project.
+        Delete a project from the database by `slug` and return the deleted project.
         """
         with Session() as session:
-            project = ProjectService.get(id)
+            project = session.query(Project).filter_by(slug=slug).first()
+
+            if not project:
+                raise ValueError(f"Project with slug '{slug}' not found.")
 
             session.delete(project)
             session.commit()
