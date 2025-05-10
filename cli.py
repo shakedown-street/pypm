@@ -14,9 +14,6 @@ def main():
     # Initialize database
     init_db()
 
-    # Initialize controllers
-    tasks = TaskController()
-
     # Initialize CLI parser
     parser = argparse.ArgumentParser(description="Project Management CLI Tool")
     subparsers = parser.add_subparsers(title="Resources", dest="resource")
@@ -94,7 +91,7 @@ def main():
         help="Due date of the task (YYYY-MM-DD)",
         default=None,
     )
-    create_task_parser.set_defaults(func=tasks.create)
+    create_task_parser.set_defaults(func=TaskController.create)
 
     # List tasks command
     list_task_parser = task_subparsers.add_parser(
@@ -106,12 +103,12 @@ def main():
         help="Project slug",
         default=None,
     )
-    list_task_parser.set_defaults(func=tasks.list)
+    list_task_parser.set_defaults(func=TaskController.list)
 
     # Get task command
     get_task_parser = task_subparsers.add_parser("get", help="Get a task by ID")
     get_task_parser.add_argument("id", type=int, help="Task ID")
-    get_task_parser.set_defaults(func=tasks.get)
+    get_task_parser.set_defaults(func=TaskController.get)
 
     # Update task command
     update_task_parser = task_subparsers.add_parser(
@@ -144,14 +141,14 @@ def main():
         help="New due date of the task (YYYY-MM-DD)",
         default=None,
     )
-    update_task_parser.set_defaults(func=tasks.update)
+    update_task_parser.set_defaults(func=TaskController.update)
 
     # Delete task command
     delete_task_parser = task_subparsers.add_parser(
         "delete", help="Delete a task by ID"
     )
     delete_task_parser.add_argument("id", type=int, help="Task ID")
-    delete_task_parser.set_defaults(func=tasks.delete)
+    delete_task_parser.set_defaults(func=TaskController.delete)
 
     # Parse arguments and route to the appropriate function
     try:

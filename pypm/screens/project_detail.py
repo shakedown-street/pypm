@@ -1,14 +1,9 @@
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.widgets import (
-    Static,
-    Header,
-    Footer,
-    ListView,
-    ListItem,
-)
+from textual.widgets import DataTable, Footer, Header, Static
 
 from pypm.services.project import ProjectService
+from pypm.services.task import TaskService
 
 
 class ProjectDetailScreen(Screen):
@@ -16,6 +11,7 @@ class ProjectDetailScreen(Screen):
         ("e", "edit_project", "Edit"),
         ("d", "delete_project", "Delete"),
         ("n", "new_task", "New task"),
+        ("l", "load_tasks", "Load tasks"),
         ("escape", "app.pop_screen", "Back to previous screen"),
     ]
 
@@ -31,10 +27,7 @@ class ProjectDetailScreen(Screen):
         yield Header()
         yield Static(f"[bold]{self.project.name}[/bold]")
         yield Static(f"[bold]ID:[/bold] {self.project.id}")
-        yield Static("[bold]Tasks:[/bold]")
-        with ListView(id="task_list"):
-            yield ListItem(Static("Task 1"), id="task_1")
-            yield ListItem(Static("Task 2"), id="task_2")
+        yield DataTable(id="task_table", cursor_type="row")
         yield Footer()
 
     def action_edit_project(self) -> None:
@@ -49,3 +42,28 @@ class ProjectDetailScreen(Screen):
             f"Are you sure you want to delete {self.project.name}?"
         )
         self.app.push_screen(self.app.SCREENS["delete_modal_screen"], confirm_delete)
+
+    def action_load_tasks(self) -> None:
+        try:
+            table = self.query_one("#task_table", DataTable)
+            table.clear(columns=True)
+
+            table.add_column("Title")
+            table.add_column("Created At")
+            table.add_column("Due Date")
+            table.add_column("Priority")
+            table.add_column("Status")
+            table.add_column("ID")
+
+            tasks = TaskService.list(self.project.slug)
+            for task in tasks:
+                table.add_row(
+                    task.title,
+                    task.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                    task.due_date.strftime("%Y-%m-%d") if task.due_date else "N/A",
+                    task.priority,
+                    task.status,
+                    str(task.id),
+                )
+        except Exception as e:
+            self.app.log(f"Error loading tasks: {e}")
