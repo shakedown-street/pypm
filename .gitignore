@@ -1,6 +1,7 @@
 __pycache__
 venv
 pypm.db
+peeweepm.db
 .github/copilot-instructions.md
 
 # other

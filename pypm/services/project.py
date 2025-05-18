@@ -1,7 +1,6 @@
 from slugify import slugify
 
-from sqlalchemy.sql import func
-from pypm.db import Project, Session
+from pypm.db import Project, db
 
 
 class ProjectService:
@@ -10,52 +9,34 @@ class ProjectService:
         """
         Create a new project in the database and return it.
         """
-        with Session() as session:
-            slug = slugify(name)
-            project = Project(name=name, slug=slug)
+        slug = slugify(name)
 
-            session.add(project)
-            session.commit()
-            session.refresh(project)
+        with db.atomic():
+            project = Project.create(name=name, slug=slug)
 
-            return project
+        return project
 
     @staticmethod
     def list() -> list[Project]:
         """
         List all projects in the database.
         """
-        with Session() as session:
-            projects = (
-                session.query(Project).order_by(func.lower(Project.name).asc()).all()
-            )
-            return projects
+        return Project.select().order_by(Project.name.asc())
 
     @staticmethod
     def get(id: int) -> Project:
         """
         Get a project from the database by `id`.
         """
-        with Session() as session:
-            project = session.query(Project).filter_by(id=id).first()
-
-            if not project:
-                raise ValueError(f"Project with id '{id}' not found.")
-
-            return project
+        project = Project.get_by_id(id)
+        return project
 
     @staticmethod
     def get_by_slug(slug: str) -> Project:
         """
         Get a project from the database by `slug`.
         """
-        with Session() as session:
-            project = session.query(Project).filter_by(slug=slug).first()
-
-            if not project:
-                raise ValueError(f"Project with slug '{slug}' not found.")
-
-            return project
+        return Project.get(Project.slug == slug)
 
     @staticmethod
     def update(slug: str, **kwargs) -> Project:
@@ -63,35 +44,33 @@ class ProjectService:
         Update fields of a project in the database by `slug`
         and return the updated project.
         """
-        with Session() as session:
-            project = session.query(Project).filter_by(slug=slug).first()
+        project = Project.get(Project.slug == slug)
 
-            if not project:
-                raise ValueError(f"Project with slug '{slug}' not found.")
+        if not project:
+            raise ValueError(f"Project with slug '{slug}' not found.")
 
+        with db.atomic():
+            # Update fields dynamically based on kwargs
             for key, value in kwargs.items():
                 if hasattr(project, key):
                     setattr(project, key, value)
                 else:
                     raise ValueError(f"Invalid field '{key}' for Project.")
 
-            session.commit()
-            session.refresh(project)
+            project.save()
 
-            return project
+        return project
 
     @staticmethod
     def delete(slug: str) -> Project:
         """
         Delete a project from the database by `slug` and return the deleted project.
         """
-        with Session() as session:
-            project = session.query(Project).filter_by(slug=slug).first()
+        with db.atomic():
+            project = Project.get(Project.slug == slug)
 
             if not project:
                 raise ValueError(f"Project with slug '{slug}' not found.")
 
-            session.delete(project)
-            session.commit()
-
+            project.delete_instance()
             return project

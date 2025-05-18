@@ -3,4 +3,4 @@ textual-dev
 textual[syntax]
 rich
 python-slugify
-sqlalchemy
+peewee

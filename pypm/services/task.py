@@ -1,4 +1,4 @@
-from pypm.db import Session, Task
+from pypm.db import Task, db
 from pypm.services.project import ProjectService
 
 
@@ -11,16 +11,12 @@ class TaskService:
         """
         project = ProjectService.get_by_slug(project_slug)
 
-        with Session() as session:
-            task = Task(
+        with db.atomic():
+            task = Task.create(
                 project_id=project.id,
                 title=title,
                 **kwargs,
             )
-
-            session.add(task)
-            session.commit()
-            session.refresh(task)
 
             return task
 
@@ -29,33 +25,28 @@ class TaskService:
         """
         List all tasks in the database, optionally filtered by project slug.
         """
-        with Session() as session:
-            if project_slug:
-                project = ProjectService.get_by_slug(project_slug)
+        if project_slug:
+            project = ProjectService.get_by_slug(project_slug)
+            if not project:
+                raise ValueError(f"Project with slug '{project_slug}' not found.")
 
-                tasks = (
-                    session.query(Task)
-                    .filter_by(project_id=project.id)
-                    .order_by(Task.created_at.desc())
-                    .all()
-                )
-            else:
-                tasks = session.query(Task).order_by(Task.created_at.desc()).all()
+            tasks = (
+                Task.select()
+                .where(Task.project_id == project.id)
+                .order_by(Task.created_at.desc())
+            )
+        else:
+            tasks = Task.select().order_by(Task.created_at.desc())
 
-            return tasks
+        return tasks
 
     @staticmethod
     def get(id) -> Task:
         """
         Get a task from the database by `id`.
         """
-        with Session() as session:
-            task = session.query(Task).filter_by(id=id).first()
-
-            if not task:
-                raise ValueError(f"Task with id '{id}' not found.")
-
-            return task
+        task = Task.get_by_id(id)
+        return task
 
     @staticmethod
     def update(id, **kwargs) -> Task:
@@ -63,32 +54,33 @@ class TaskService:
         Update fields of a task in the database by `id`
         and return the updated task.
         """
-        with Session() as session:
-            task = session.query(Task).filter_by(id=id).first()
+        task = Task.get_by_id(id)
 
-            if not task:
-                raise ValueError(f"Task with id '{id}' not found.")
+        if not task:
+            raise ValueError(f"Task with id '{id}' not found.")
 
+        with db.atomic():
+            # Update fields dynamically based on kwargs
             for key, value in kwargs.items():
                 if hasattr(task, key):
                     setattr(task, key, value)
                 else:
                     raise ValueError(f"Invalid field '{key}' for Task.")
 
-            session.commit()
-            session.refresh(task)
+            task.save()
 
-            return task
+        return task
 
     @staticmethod
     def delete(id) -> Task:
         """
-        Delete a task from the database by `id`
-        and return the deleted task.
+        Delete a task from the database by `id` and return the deleted task.
         """
-        with Session() as session:
-            task = TaskService.get(id)
+        with db.atomic():
+            task = Task.get_by_id(id)
 
-            session.delete(task)
-            session.commit()
+            if not task:
+                raise ValueError(f"Task with id '{id}' not found.")
+
+            task.delete_instance()
             return task
